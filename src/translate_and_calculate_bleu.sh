@@ -1,4 +1,4 @@
-#!/bin/bash
+#/bin/bash
 
 # change these
 PREFIX=$1
@@ -6,7 +6,7 @@ CODEWORD=$(date +%s)
 
 # script needs a directory structure 
 # like ./trainedModels ./tst ./dev 
-BASE_DIR=.
+BASE_DIR=$2
 TRAINEDMODELS_PATH=${BASE_DIR}/trainedModels
 
 # Groundhog path for sample.py
@@ -15,12 +15,12 @@ SAMPLE_PY=~/git/GroundHog/experiments/nmt/sample.py
 # input and output files for test set
 TST_SOURCE=${BASE_DIR}/tst/IWSLT14.TED.tst2010.zh-en.zh.xml.txt.trimmed
 TST_GOLD=${BASE_DIR}/tst/IWSLT14.TED.tst2010.zh-en.en.tok
-TST_OUT=./${PREFIX}_${CODEWORD}.IWSLT14.TED.tst2010.zh-en.TRANSLATION
+TST_OUT=${BASE_DIR}/${PREFIX}_${CODEWORD}.IWSLT14.TED.tst2010.zh-en.TRANSLATION
 
 # input and output files for development set
 DEV_SOURCE=${BASE_DIR}/dev/IWSLT14.TED.dev2010.zh-en.zh.xml.txt.trimmed
 DEV_GOLD=${BASE_DIR}/dev/IWSLT14.TED.dev2010.zh-en.en.tok
-DEV_OUT=./${PREFIX}_${CODEWORD}.IWSLT14.TED.dev2010.zh-en.TRANSLATION
+DEV_OUT=${BASE_DIR}/${PREFIX}_${CODEWORD}.IWSLT14.TED.dev2010.zh-en.TRANSLATION
 
 # joint input and output files
 INP_FILE=${CODEWORD}_INPUT
@@ -49,9 +49,9 @@ echo 'translating from chinese to english...'
 THEANO_FLAGS='floatX=float32, device=gpu2' python $SAMPLE_PY --beam-search --state $STATE $MODEL --source $INP_FILE --trans $OUT_FILE --beam-size 20
 
 # split output file back to test and dev files
-split -l $NUMLINES_TST $OUT_FILE
-mv xaa $TST_OUT
-mv xab $DEV_OUT
+split -l $NUMLINES_TST $OUT_FILE $OUT_FILE
+mv ${OUT_FILE}xaa $TST_OUT
+mv ${OUT_FILE}xab $DEV_OUT
 rm $OUT_FILE
 rm $INP_FILE
 
