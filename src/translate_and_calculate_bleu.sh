@@ -13,16 +13,16 @@ CODEWORD=$(date +%s)
 TRAINEDMODELS_PATH=${BASE_DIR}/trainedModels
 
 # Groundhog path for sample.py
-SAMPLE_PY=~/git/GroundHog/experiments/nmt/sample.py
+SAMPLE_PY=/u/firatorh/git/GroundHog/experiments/nmt/sample.py
 
 # input and output files for test set
-TST_SOURCE=${BASE_DIR}/tst/inp_tst
-TST_GOLD=${BASE_DIR}/tst/inp_gold
+TST_SOURCE=${BASE_DIR}/tst/$4
+TST_GOLD=${BASE_DIR}/tst/$5
 TST_OUT=${BASE_DIR}/${PREFIX}_${CODEWORD}.IWSLT14.TED.tst2010.zh-en.TRANSLATION
 
 # input and output files for development set
-DEV_SOURCE=${BASE_DIR}/dev/inp_tst
-DEV_GOLD=${BASE_DIR}/dev/inp_gold
+DEV_SOURCE=${BASE_DIR}/dev/$6
+DEV_GOLD=${BASE_DIR}/dev/$7
 DEV_OUT=${BASE_DIR}/${PREFIX}_${CODEWORD}.IWSLT14.TED.dev2010.zh-en.TRANSLATION
 
 # joint input and output files
@@ -67,7 +67,7 @@ DEV_BLEU=$(perl $EVAL_BLEU  $DEV_GOLD < $DEV_OUT | grep -oP '(?<=BLEU = )[.0-9]+
 echo 'Dev BLEU =' $DEV_BLEU
 
 # append scores to translation files
-echo 'CODEWORD ='${CODEWORD}  
+echo 'CODEWORD =' ${CODEWORD}  
 mv ${TST_OUT} ${TST_OUT}-BLEU${TST_BLEU}
 mv ${DEV_OUT} ${DEV_OUT}-BLEU${DEV_BLEU}
 

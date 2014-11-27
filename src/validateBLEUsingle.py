@@ -6,14 +6,25 @@ sample call:
 import os
 import sys
 import numpy as np
-import threading
 import time
 import shutil
 import subprocess
 import re
 import signal
+import argparse
 from time import sleep
 import traceback
+
+LIMIT_ITER=np.inf
+SHUT_DOWN=False
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p", "--plist", default="get_params_tr_en",
+            help="Parameter list for bleu script")
+    parser.add_argument("-i", "--nIter", type=int, default=LIMIT_ITER,
+            help="Number of iterations")
+    return parser.parse_args()
 
 def get_params_zh_en():
     '''
@@ -49,19 +60,17 @@ def get_params_tr_en():
                         params['prefix'] + '_model.npz'
     return params
 
-class CalculateBLEU(threading.Thread):
+class CalculateBLEU(object):
 
     bestTstBLEU = 0.0
     bestDevBLEU = 0.0
     count = 0
 
-    def __init__(self, tid, lock, params):
+    def __init__(self, tid, params):
         """
         Constructor.
         """
-        threading.Thread.__init__(self)
         self.tid      = tid
-        self.lock     = lock
         self.params   = params
         self.tstBLEU  = 0.0
         self.devBLEU  = 0.0
@@ -85,14 +94,14 @@ class CalculateBLEU(threading.Thread):
             except:
                 device='cpu'
         '''
-        return 'cpu'
+        return 'gpu0'
 
     def call_bleu_script(self):
         '''
         open pipe and call the script
         '''
         try:
-            print 'Thread-{} is using device={}'.format(self.tid,self.device)
+            print 'Job-{} is using device={}'.format(self.tid,self.device)
             p = subprocess.Popen([self.params['script'] + ' ' +
                                   self.params['prefix'] + ' ' +
                                   self.params['base']   + ' ' +
@@ -117,48 +126,38 @@ class CalculateBLEU(threading.Thread):
         '''
         write results to output file, create if not exists
         '''
-        if not os.path.isfile(params['outfile']):
-            with open(params['outfile'], 'w+') as f:
-                f.write('CODEWORD TST_BLEU DEV_BLEU\n')
         with open(params['outfile'], 'a') as f:
             f.write('{}\t{}\t{}\n'.format(self.codeword,
                                           self.bestTstBLEU,
                                           self.bestDevBLEU))
     def run(self):
         """
-        Thread run method. Calculate BLEU on Test and Dev sets.
+        Thread run method. Calculate BLEU On Test and Dev sets.
         """
         self.call_bleu_script()
-
-        self.lock.acquire()
         self.write_results()
-        self.lock.release()
-
-        print 'THREAD-{} done'.format(self.tid)
-
-shutdown = False
+        print 'JOB-{} done'.format(self.tid)
 
 def sigint_handler(_signo, _stack_frame):
     '''
     handles keyboard interrupt, ctrl+c
     '''
     print 'process interrupted'
-    global shutdown
-    shutdown = True
+    global SHUT_DOWN
+    SHUT_DOWN = True
 
 if __name__ == "__main__":
 
-    params = get_params_zh_en()
+    # get parameters dict
+    args = parse_args()
+    params = eval(args.plist)()
 
+    # append unique time stamp to output file
     params['outfile'] += str(int(time.time()))
 
     signal.signal(signal.SIGINT, sigint_handler)
 
-    controllerSleep = 60*30 # check every 30 minutes
-
-
-    # this is for file access
-    lock = threading.Lock()
+    controllerSleep = 60*2 # check every 2 minutes
 
     print 'script for bleu :{}'.format(params['script'])
     print 'model prefix    :{}'.format(params['prefix'])
@@ -171,19 +170,22 @@ if __name__ == "__main__":
     print 'dev gold file   :{}'.format(params['devGld'])
     print 'controller sleep:{} minutes'.format(controllerSleep/60)
 
+    # initialize output file and write the header
+    if not os.path.isfile(params['outfile']):
+        with open(params['outfile'], 'w+') as f:
+            f.write('CODEWORD TST_BLEU DEV_BLEU\n')
+
     lastModified = 0
-    threads = []
-    while not shutdown:
+    counter = 0
+    while not SHUT_DOWN and counter < args.nIter:
         currModified = os.path.getmtime(params['model'])
         if currModified > lastModified:
             time.sleep(5) # wait for file transfers
-            print 'LAUNCHING THREAD {}'.format(len(threads))
-            threads.append(CalculateBLEU(len(threads),lock, params))
-            threads[-1].start()
+            print 'LAUNCHING JOB {}'.format(counter)
+            CalculateBLEU(counter, params).run()
             lastModified = currModified
+            counter += 1
         time.sleep(controllerSleep)
 
-    print 'waiting for threads to join()...'
-    [t.join() for t in threads]
     print 'done'
 
