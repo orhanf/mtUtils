@@ -13,18 +13,18 @@ TRAINEDMODELS_PATH=${BASE_DIR}/trainedModels
 SAMPLE_PY=~/git/GroundHog/experiments/nmt/sample.py
 
 # input and output files for test set
-TST_SOURCE=${BASE_DIR}/tst/IWSLT14.TED.tst2010.zh-en.zh.xml.txt.trimmed
-TST_GOLD=${BASE_DIR}/tst/IWSLT14.TED.tst2010.zh-en.en.tok
+TST_SOURCE=${BASE_DIR}/tst/inp_tst
+TST_GOLD=${BASE_DIR}/tst/inp_gold
 TST_OUT=${BASE_DIR}/${PREFIX}_${CODEWORD}.IWSLT14.TED.tst2010.zh-en.TRANSLATION
 
 # input and output files for development set
-DEV_SOURCE=${BASE_DIR}/dev/IWSLT14.TED.dev2010.zh-en.zh.xml.txt.trimmed
-DEV_GOLD=${BASE_DIR}/dev/IWSLT14.TED.dev2010.zh-en.en.tok
+DEV_SOURCE=${BASE_DIR}/dev/inp_tst
+DEV_GOLD=${BASE_DIR}/dev/inp_gold
 DEV_OUT=${BASE_DIR}/${PREFIX}_${CODEWORD}.IWSLT14.TED.dev2010.zh-en.TRANSLATION
 
 # joint input and output files
-INP_FILE=${CODEWORD}_INPUT
-OUT_FILE=${CODEWORD}_OUTPUT 
+INP_FILE=${BASE_DIR}/${CODEWORD}_INPUT
+OUT_FILE=${BASE_DIR}/${CODEWORD}_OUTPUT 
 cat $TST_SOURCE $DEV_SOURCE > $INP_FILE
 
 # get line numbers of test 
@@ -33,8 +33,8 @@ NUMLINES_TST=$(cat $TST_SOURCE | wc -l )
 # these are usually same
 REF_STATE=${TRAINEDMODELS_PATH}/${PREFIX}_state.pkl
 REF_MODEL=${TRAINEDMODELS_PATH}/${PREFIX}_model.npz
-STATE=./${PREFIX}_${CODEWORD}_state.pkl
-MODEL=./${PREFIX}_${CODEWORD}_model.npz
+STATE=${BASE_DIR}/${PREFIX}_${CODEWORD}_state.pkl
+MODEL=${BASE_DIR}/${PREFIX}_${CODEWORD}_model.npz
 
 # path to bleu score function
 EVAL_BLEU=/data/lisatmp3/firatorh/turkishParallelCorpora/iwslt14/scripts/multi-bleu.perl
@@ -50,25 +50,23 @@ THEANO_FLAGS='floatX=float32, device=gpu2' python $SAMPLE_PY --beam-search --sta
 
 # split output file back to test and dev files
 split -l $NUMLINES_TST $OUT_FILE $OUT_FILE
-mv ${OUT_FILE}xaa $TST_OUT
-mv ${OUT_FILE}xab $DEV_OUT
+mv ${OUT_FILE}aa $TST_OUT
+mv ${OUT_FILE}ab $DEV_OUT
 rm $OUT_FILE
 rm $INP_FILE
 
 # calculate bleu score
-echo 'calculating bleu score for test dataset...'
-$TST_BLEU=$(perl $EVAL_BLEU  $TST_GOLD < $TST_OUT | grep -oP '(?<=BLEU = )[.0-9]+')
-echo 'BLEU score on tst: ' $TST_BLEU
+TST_BLEU=$(perl $EVAL_BLEU  $TST_GOLD < $TST_OUT | grep -oP '(?<=BLEU = )[.0-9]+')
+echo 'Tst BLEU =' $TST_BLEU
 
 # calculate bleu score
-echo 'calculating bleu score for development dataset...'
-$DEV_BLEU=$(perl $EVAL_BLEU  $DEV_GOLD < $DEV_OUT | grep -oP '(?<=BLEU = )[.0-9]+')
-echo 'BLEU score on dev: ' $DEV_BLEU
+DEV_BLEU=$(perl $EVAL_BLEU  $DEV_GOLD < $DEV_OUT | grep -oP '(?<=BLEU = )[.0-9]+')
+echo 'Dev BLEU =' $DEV_BLEU
 
 # append scores to translation files
-echo ${CODEWORD} ' prefix done!' 
-mv $TST_OUT $TST_OUT-BLEU$TST_BLEU
-mv $DEV_OUT $DEV_OUT-BLEU$DEV_BLEU
+echo 'CODEWORD ='${CODEWORD}  
+mv ${TST_OUT} ${TST_OUT}-BLEU${TST_BLEU}
+mv ${DEV_OUT} ${DEV_OUT}-BLEU${DEV_BLEU}
 
 
 
