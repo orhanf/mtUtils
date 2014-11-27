@@ -1,12 +1,15 @@
 #/bin/bash
 
-# change these
+# arguments to script
 PREFIX=$1
+BASE_DIR=$2
+DEVICE=$3
+
+# unique id, time-stamp
 CODEWORD=$(date +%s)
 
 # script needs a directory structure 
 # like ./trainedModels ./tst ./dev 
-BASE_DIR=$2
 TRAINEDMODELS_PATH=${BASE_DIR}/trainedModels
 
 # Groundhog path for sample.py
@@ -46,7 +49,7 @@ cp $REF_MODEL $MODEL
 
 # next get the translations
 echo 'translating from chinese to english...'
-THEANO_FLAGS='floatX=float32, device=gpu2' python $SAMPLE_PY --beam-search --state $STATE $MODEL --source $INP_FILE --trans $OUT_FILE --beam-size 20
+THEANO_FLAGS="floatX=float32, device=${DEVICE}" python $SAMPLE_PY --beam-search --state $STATE $MODEL --source $INP_FILE --trans $OUT_FILE --beam-size 20
 
 # split output file back to test and dev files
 split -l $NUMLINES_TST $OUT_FILE $OUT_FILE
