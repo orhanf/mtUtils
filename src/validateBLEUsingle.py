@@ -32,9 +32,9 @@ def get_params_zh_en():
     '''
     params = {}
     params['script'] ='~/orhanf/mtUtils/src/translate_and_calculate_bleu.sh'
-    params['prefix'] ='searchWithoutLM'
+    params['prefix'] ='searchWithLMfile'
     params['base']   ='/data/lisatmp3/firatorh/nmt/zh-en_lm'
-    params['outfile']='/data/lisatmp3/firatorh/nmt/zh-en_lm/searchWithoutLM_OUT'
+    params['outfile']='/data/lisatmp3/firatorh/nmt/zh-en_lm/searchWithLMfile_OUT'
     params['tstSrc'] = 'IWSLT14.TED.tst2010.zh-en.zh.xml.txt.trimmed'
     params['tstGld'] = 'IWSLT14.TED.tst2010.zh-en.en.tok'
     params['devSrc'] = 'IWSLT14.TED.dev2010.zh-en.zh.xml.txt.trimmed'
@@ -49,9 +49,9 @@ def get_params_tr_en():
     '''
     params = {}
     params['script'] ='~/orhanf/mtUtils/src/translate_and_calculate_bleu.sh'
-    params['prefix'] ='searchWithoutLM'
+    params['prefix'] ='searchWithLMfile'
     params['base']   ='/data/lisatmp3/firatorh/nmt/tr-en_lm'
-    params['outfile']='/data/lisatmp3/firatorh/nmt/tr-en_lm/searchWithoutLM_OUT'
+    params['outfile']='/data/lisatmp3/firatorh/nmt/tr-en_lm/searchWithLMfile_OUT'
     params['tstSrc'] = 'IWSLT14.TED.tst2010.tr-en.tr.tok.seg'
     params['tstGld'] = 'IWSLT14.TED.tst2010.tr-en.en.tok'
     params['devSrc'] = 'IWSLT14.TED.dev2010.tr-en.tr.tok.seg'
@@ -128,8 +128,8 @@ class CalculateBLEU(object):
         '''
         with open(params['outfile'], 'a') as f:
             f.write('{}\t{}\t{}\n'.format(self.codeword,
-                                          self.bestTstBLEU,
-                                          self.bestDevBLEU))
+                                          self.tstBLEU,
+                                          self.devBLEU))
     def run(self):
         """
         Thread run method. Calculate BLEU On Test and Dev sets.
