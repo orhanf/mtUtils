@@ -24,6 +24,8 @@ def parse_args():
             help="Parameter list for bleu script")
     parser.add_argument("-i", "--nIter", type=int, default=LIMIT_ITER,
             help="Number of iterations")
+    parser.add_argument("-d", "--device", type=str, default='gpu0',
+            help="Device to use gpu0/gpu2/cpu")
     return parser.parse_args()
 
 def get_params_zh_en():
@@ -32,9 +34,9 @@ def get_params_zh_en():
     '''
     params = {}
     params['script'] ='~/orhanf/mtUtils/src/translate_and_calculate_bleu.sh'
-    params['prefix'] ='searchWithLMfile'
+    params['prefix'] ='searchWithLM0'
     params['base']   ='/data/lisatmp3/firatorh/nmt/zh-en_lm'
-    params['outfile']='/data/lisatmp3/firatorh/nmt/zh-en_lm/searchWithLMfile_OUT'
+    params['outfile']='/data/lisatmp3/firatorh/nmt/zh-en_lm/searchWithLM0_OUT'
     params['tstSrc'] = 'IWSLT14.TED.tst2010.zh-en.zh.xml.txt.trimmed'
     params['tstGld'] = 'IWSLT14.TED.tst2010.zh-en.en.tok'
     params['devSrc'] = 'IWSLT14.TED.dev2010.zh-en.zh.xml.txt.trimmed'
@@ -49,9 +51,9 @@ def get_params_tr_en():
     '''
     params = {}
     params['script'] ='~/orhanf/mtUtils/src/translate_and_calculate_bleu.sh'
-    params['prefix'] ='searchWithLMfile'
+    params['prefix'] ='searchWithLM0'
     params['base']   ='/data/lisatmp3/firatorh/nmt/tr-en_lm'
-    params['outfile']='/data/lisatmp3/firatorh/nmt/tr-en_lm/searchWithLMfile_OUT'
+    params['outfile']='/data/lisatmp3/firatorh/nmt/tr-en_lm/searchWithLM0_OUT'
     params['tstSrc'] = 'IWSLT14.TED.tst2010.tr-en.tr.tok.seg'
     params['tstGld'] = 'IWSLT14.TED.tst2010.tr-en.en.tok'
     params['devSrc'] = 'IWSLT14.TED.dev2010.tr-en.tr.tok.seg'
@@ -65,6 +67,7 @@ class CalculateBLEU(object):
     bestTstBLEU = 0.0
     bestDevBLEU = 0.0
     count = 0
+    bestBleuFilename = ''
 
     def __init__(self, tid, params):
         """
@@ -75,7 +78,7 @@ class CalculateBLEU(object):
         self.tstBLEU  = 0.0
         self.devBLEU  = 0.0
         self.codeword = 'error'
-        self.device   = self.select_device()
+        #self.device   = self.select_device()
 
     def select_device(self):
         '''
@@ -105,7 +108,7 @@ class CalculateBLEU(object):
             p = subprocess.Popen([self.params['script'] + ' ' +
                                   self.params['prefix'] + ' ' +
                                   self.params['base']   + ' ' +
-                                  self.device + ' ' +
+                                  self.params['device'] + ' ' +
                                   self.params['tstSrc'] + ' ' +
                                   self.params['tstGld'] + ' ' +
                                   self.params['devSrc'] + ' ' +
@@ -136,7 +139,26 @@ class CalculateBLEU(object):
         """
         self.call_bleu_script()
         self.write_results()
+	self.clean_files()
         print 'JOB-{} done'.format(self.tid)
+
+    def clean_files(self):
+	"""
+	Clean copied state and model files if necessary
+	"""
+	if self.bestDevBleu >= self.devBleu:
+	    if os.path.exists([self.params['base'] + '/' + self.params['prefix'] + self.codeword '_model.npz']):
+		os.remove([self.params['base'] + '/' + self.params['prefix'] + self.codeword '_model.npz'])
+	    if os.path.exists([self.params['base'] + '/' + self.params['prefix'] + self.codeword '_state.pkl']):
+		os.remove([self.params['base'] + '/' + self.params['prefix'] + self.codeword '_state.pkl'])
+	else:
+	    if os.path.exists([self.bestBleuFilename + '_model.npz']):
+		os.remove([self.bestBleuFilename + '_model.npz'])
+	    if os.path.exists([self.bestBleuFilename + '_state.pkl']):
+		os.remove([self.bestBleuFilename + '_state.pkl'])
+	    self.bestBleuFilename = [self.params['base'] + '/' + self.params['prefix'] + self.codeword]
+	    self.bestDevBleu = self.devBleu
+ 	    self.bestTstBleu = self.tstBleu
 
 def sigint_handler(_signo, _stack_frame):
     '''
