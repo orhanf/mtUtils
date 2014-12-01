@@ -34,9 +34,9 @@ def get_params_zh_en():
     '''
     params = {}
     params['script'] ='~/orhanf/mtUtils/src/translate_and_calculate_bleu.sh'
-    params['prefix'] ='searchWithLM0'
-    params['base']   ='/data/lisatmp3/firatorh/nmt/zh-en_lm'
-    params['outfile']='/data/lisatmp3/firatorh/nmt/zh-en_lm/searchWithLM0_OUT'
+    params['prefix'] = 'searchWithLM0'
+    params['base']   = '/data/lisatmp3/firatorh/nmt/zh-en_lm'
+    params['outfile']= '/data/lisatmp3/firatorh/nmt/zh-en_lm/searchWithLM0_OUT'
     params['tstSrc'] = 'IWSLT14.TED.tst2010.zh-en.zh.xml.txt.trimmed'
     params['tstGld'] = 'IWSLT14.TED.tst2010.zh-en.en.tok'
     params['devSrc'] = 'IWSLT14.TED.dev2010.zh-en.zh.xml.txt.trimmed'
@@ -51,8 +51,8 @@ def get_params_tr_en():
     '''
     params = {}
     params['script'] ='~/orhanf/mtUtils/src/translate_and_calculate_bleu.sh'
-    params['prefix'] ='searchWithLM0'
-    params['base']   ='/data/lisatmp3/firatorh/nmt/tr-en_lm'
+    params['prefix'] = 'searchWithLM0'
+    params['base']   = '/data/lisatmp3/firatorh/nmt/tr-en_lm'
     params['outfile']='/data/lisatmp3/firatorh/nmt/tr-en_lm/searchWithLM0_OUT'
     params['tstSrc'] = 'IWSLT14.TED.tst2010.tr-en.tr.tok.seg'
     params['tstGld'] = 'IWSLT14.TED.tst2010.tr-en.en.tok'
@@ -60,6 +60,48 @@ def get_params_tr_en():
     params['devGld'] = 'IWSLT14.TED.dev2010.tr-en.en.tok'
     params['model']  = params['base'] +'/trainedModels/'+\
                         params['prefix'] + '_model.npz'
+    return params
+
+def get_params_tr_en_shallowLM():
+    '''
+    parameters to change, filenames etc
+    '''
+    params = {}
+    params['script'] = '~/orhanf/mtUtils/src/translate_and_calculate_bleu_shallow.sh'
+    params['prefix'] = 'searchWithoutLM_1417150916'
+    params['base']   = '/data/lisatmp3/firatorh/nmt/tr-en_lm/outputs/searchWithoutLM'
+    params['outfile']= '/data/lisatmp3/firatorh/nmt/shallow_fusion/tr-en_lm/searchWithShallowLM_OUT'
+    params['tstSrc'] = 'IWSLT14.TED.tst2010.tr-en.tr.tok.seg'
+    params['tstGld'] = 'IWSLT14.TED.tst2010.tr-en.en.tok'
+    params['devSrc'] = 'IWSLT14.TED.dev2010.tr-en.tr.tok.seg'
+    params['devGld'] = 'IWSLT14.TED.dev2010.tr-en.en.tok'
+    params['model']  = params['base'] + '/' +\
+                        params['prefix'] + '_model.npz'
+    params['useAuxLM'] = True
+    params['lmModel']  = '/data/lisatmp3/firatorh/nmt/en_lm/lm_model.npz'
+    params['lmState']  = '/data/lisatmp3/firatorh/nmt/en_lm/lm_state.pkl'
+    params['eta']      = 0.5
+    return params
+
+def get_params_zh_en_shallowLM():
+    '''
+    parameters to change, filenames etc
+    '''
+    params = {}
+    params['script']='~/orhanf/mtUtils/src/translate_and_calculate_bleu_shallow.sh'
+    params['prefix'] = 'searchWithshallowLM'
+    params['base']   = '/data/lisatmp3/firatorh/nmt/zh-en_lm'
+    params['outfile']= '/data/lisatmp3/firatorh/nmt/zh-en_lm/searchWithLM0_OUT'
+    params['tstSrc'] = 'IWSLT14.TED.tst2010.zh-en.zh.xml.txt.trimmed'
+    params['tstGld'] = 'IWSLT14.TED.tst2010.zh-en.en.tok'
+    params['devSrc'] = 'IWSLT14.TED.dev2010.zh-en.zh.xml.txt.trimmed'
+    params['devGld'] = 'IWSLT14.TED.dev2010.zh-en.en.tok'
+    params['model']  = params['base'] +'/trainedModels/'+\
+                        params['prefix'] + '_model.npz'
+    params['useAuxLM'] = True
+    params['lmModel']  ='/data/lisatmp3/firatorh/nmt/en_lm/lm_model.npz'
+    params['lmState']  ='/data/lisatmp3/firatorh/nmt/en_lm/lm_state.pkl'
+    params['eta']      = 0.5
     return params
 
 class CalculateBLEU(object):
@@ -104,16 +146,22 @@ class CalculateBLEU(object):
         open pipe and call the script
         '''
         try:
-            print 'Job-{} is using device={}'.format(self.tid,self.device)
-            p = subprocess.Popen([self.params['script'] + ' ' +
-                                  self.params['prefix'] + ' ' +
-                                  self.params['base']   + ' ' +
-                                  self.params['device'] + ' ' +
-                                  self.params['tstSrc'] + ' ' +
-                                  self.params['tstGld'] + ' ' +
-                                  self.params['devSrc'] + ' ' +
-                                  self.params['devGld'] + ' ' +
-                                " | grep 'BLEU =\|CODEWORD ='"], stdout=subprocess.PIPE, shell=True)
+            print 'Job-{} is using device={}'.format(self.tid,params['device'])
+            paramList = '{} {} {} {} {} {} {} {} '.format(self.params['script'],
+                    self.params['script'],
+                    self.params['base'],
+                    self.params['device'],
+                    self.params['tstSrc'],
+                    self.params['tstGld'],
+                    self.params['devSrc'],
+                    self.params['devGld'])
+            if 'useAuxLM' in self.params and self.params['useAuxLM']:
+                paramList += ' {} {} {}'.format(self.params['lmModel'],
+                        self.params['lmState'],self.params['eta'])
+
+            p = subprocess.Popen([paramList +
+                                " | grep 'BLEU =\|CODEWORD ='"],
+                                stdout=subprocess.PIPE, shell=True)
             output = p.communicate()[0]
             tst_parse = re.search('(?<=Tst BLEU = )[.0-9]*', output)
             dev_parse = re.search('(?<=Dev BLEU = )[.0-9]*', output)
@@ -139,26 +187,31 @@ class CalculateBLEU(object):
         """
         self.call_bleu_script()
         self.write_results()
-	self.clean_files()
+        self.clean_files()
         print 'JOB-{} done'.format(self.tid)
 
     def clean_files(self):
 	"""
 	Clean copied state and model files if necessary
 	"""
-	if self.bestDevBleu >= self.devBleu:
-	    if os.path.exists([self.params['base'] + '/' + self.params['prefix'] + self.codeword '_model.npz']):
-		os.remove([self.params['base'] + '/' + self.params['prefix'] + self.codeword '_model.npz'])
-	    if os.path.exists([self.params['base'] + '/' + self.params['prefix'] + self.codeword '_state.pkl']):
-		os.remove([self.params['base'] + '/' + self.params['prefix'] + self.codeword '_state.pkl'])
-	else:
-	    if os.path.exists([self.bestBleuFilename + '_model.npz']):
-		os.remove([self.bestBleuFilename + '_model.npz'])
-	    if os.path.exists([self.bestBleuFilename + '_state.pkl']):
-		os.remove([self.bestBleuFilename + '_state.pkl'])
-	    self.bestBleuFilename = [self.params['base'] + '/' + self.params['prefix'] + self.codeword]
-	    self.bestDevBleu = self.devBleu
- 	    self.bestTstBleu = self.tstBleu
+        stateThis = '{}/{}_{}_state.pkl'.format(self.params['base'], self.params['prefix'], self.codeword)
+        modelThis = '{}/{}_{}_model.npz'.format(self.params['base'], self.params['prefix'], self.codeword)
+        stateBest = '{}_state.pkl'.format(self.bestBleuFilename)
+        modelBest = '{}_model.npz'.format(self.bestBleuFilename)
+
+        if self.bestDevBLEU >= self.devBLEU:
+            if os.path.exists(stateThis):
+                os.remove(stateThis)
+            if os.path.exists(modelThis):
+                os.remove(modelThis)
+        else:
+            if os.path.exists(modelBest):
+                os.remove(modelBest)
+            if os.path.exists(stateBest):
+                os.remove(stateBest)
+        self.bestBleuFilename = '{}/{}_{}'.format(self.params['base'], self.params['prefix'], self.codeword)
+        self.bestDevBLEU = self.devBLEU
+        self.bestTstBLEU = self.tstBLEU
 
 def sigint_handler(_signo, _stack_frame):
     '''
@@ -176,6 +229,7 @@ if __name__ == "__main__":
 
     # append unique time stamp to output file
     params['outfile'] += str(int(time.time()))
+    params['device'] = args.device
 
     signal.signal(signal.SIGINT, sigint_handler)
 
@@ -190,6 +244,10 @@ if __name__ == "__main__":
     print 'tst gold file   :{}'.format(params['tstGld'])
     print 'dev source file :{}'.format(params['devSrc'])
     print 'dev gold file   :{}'.format(params['devGld'])
+    if 'useAuxLM' in params and params['useAuxLM']:
+        print 'lm model file   :{}'.format(params['lmModel'])
+        print 'lm state file   :{}'.format(params['lmState'])
+        print 'balancing eta   :{}'.format(params['eta'])
     print 'controller sleep:{} minutes'.format(controllerSleep/60)
 
     # initialize output file and write the header
