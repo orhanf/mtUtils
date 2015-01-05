@@ -1,0 +1,2 @@
+
+THEANO_FLAGS="floatX=float32, device=cpu" python  /u/firatorh/git/GroundHog/experiments/nmt/sampleShallowLM.py --beam-search --state   /data/lisatmp3/firatorh/nmt/tr-en_lm/searchWithLM0_1417492639_state.pkl /data/lisatmp3/firatorh/nmt/tr-en_lm/searchWithLM0_1417492639_model.npz --source /data/lisatmp3/firatorh/nmt/tr-en_lm/IWSLT14.TED.dev2010.tr-en.tr.tok.seg --trans /data/lisatmp3/firatorh/nmt/tr-en_lm/IWSLT14.TED.dev2010.tr-en.en.tok --beam-size 20
