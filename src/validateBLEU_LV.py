@@ -1,8 +1,5 @@
 #!usr/bin/python
-'''
-sample call:
-    validateBLEU.py script.sh prefix basedir outfile
-'''
+import argparse
 import logging
 import sys
 import subprocess
@@ -21,8 +18,7 @@ def get_params_cs_en_LV():
     '''
     params = {}
     params['script'] = '/part/02/Tmp/firatorh/wmt15/trainedModels/evaluate_model.sh'
-    #params['script'] = '~/evaluate_model.sh'
-    params['modelIdx'] = [17]# range(1, 5)
+    params['modelIdx'] = range(1, 5)
     params['root_dir'] = '/part/02/Tmp/firatorh/wmt15/trainedModels'
     params['src_file'] = '/data/lisatmp3/jeasebas/nmt/data/wmt15/full/dev/tok/newstest2013.tok.cs'
     params['ref_file'] = '/data/lisatmp3/jeasebas/nmt/data/wmt15/full/dev/tok/newstest2013.tok.en'
@@ -89,20 +85,21 @@ def call_script(model_idx, params):
             logger.info('error in call_bleu_script()')
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--pool-size", type=int, default=2)
+parser.add_argument("--proto", default="get_params_cs_en_LV",
+        help="Parameter list for bleu script")
+args = parser.parse_args()
+
+
 if __name__ == "__main__":
 
-    params = get_params_cs_en_LV()
+    params = eval(args.proto)()
 
-    logger.info('script for bleu :{}'.format(params['script']))
-    logger.info('model idx       :{}'.format(params['modelIdx']))
-    logger.info('root directory  :{}'.format(params['root_dir']))
-    logger.info('source file     :{}'.format(params['src_file']))
-    logger.info('reference file  :{}'.format(params['ref_file']))
-    logger.info('device          :{}'.format(params['device']))
-    logger.info('prefix          :{}'.format(params['prefix']))
-    logger.info('beam size       :{}'.format(params['beam_size']))
+    for key, value in params.iteritems():
+        logger.info('{:15} :{}'.format(key, value))
 
-    pool = ThreadPool(2)
+    pool = ThreadPool(args.pool_size)
 
     for i, d in enumerate(params['modelIdx']):
         pool.add_task(call_script, d, params)
