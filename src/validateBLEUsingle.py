@@ -191,9 +191,9 @@ class CalculateBLEU(object):
         print 'JOB-{} done'.format(self.tid)
 
     def clean_files(self):
-	"""
-	Clean copied state and model files if necessary
-	"""
+        """
+        Clean copied state and model files if necessary
+        """
         stateThis = '{}/{}_{}_state.pkl'.format(self.params['base'], self.params['prefix'], self.codeword)
         modelThis = '{}/{}_{}_model.npz'.format(self.params['base'], self.params['prefix'], self.codeword)
         stateBest = '{}_state.pkl'.format(self.bestBleuFilename)
