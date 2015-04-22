@@ -18,10 +18,26 @@ def get_params_cs_en_LV():
     '''
     params = {}
     params['script'] = '/part/02/Tmp/firatorh/wmt15/trainedModels/evaluate_model.sh'
-    params['modelIdx'] = range(1, 5)
+    params['modelIdx'] = range(10, 20)
     params['root_dir'] = '/part/02/Tmp/firatorh/wmt15/trainedModels'
     params['src_file'] = '/data/lisatmp3/jeasebas/nmt/data/wmt15/full/dev/tok/newstest2013.tok.cs'
     params['ref_file'] = '/data/lisatmp3/jeasebas/nmt/data/wmt15/full/dev/tok/newstest2013.tok.en'
+    params['device'] = 'cpu'
+    params['prefix'] = 'search_lv_cs_fi'
+    params['beam_size'] = 12
+    return params
+
+
+def get_params_en_cs_LV():
+    '''
+    parameters to change, filenames etc
+    '''
+    params = {}
+    params['script'] = '/part/02/Tmp/firatorh/en-cs/evaluate_model.sh'
+    params['modelIdx'] = range(8, 13)
+    params['root_dir'] = '/part/02/Tmp/firatorh/en-cs'
+    params['src_file'] = '/data/lisatmp3/jeasebas/nmt/data/wmt15/full/dev/tok/newstest2013.tok.en'
+    params['ref_file'] = '/data/lisatmp3/jeasebas/nmt/data/wmt15/full/dev/tok/newstest2013.tok.cs'
     params['device'] = 'cpu'
     params['prefix'] = 'search_lv_cs_fi'
     params['beam_size'] = 12
@@ -63,10 +79,10 @@ class ThreadPool:
         self.tasks.join()
 
 
-def call_script(model_idx, params):
+def call_script(tid, model_idx, params):
 
         try:
-            logger.info('Thread for model{} is running'.format(model_idx))
+            logger.info('Thread {} for model{} is running'.format(tid, model_idx))
             p = subprocess.Popen([params['script'] + ' ' +
                                   ' %d ' % model_idx +
                                   params['root_dir'] + ' ' +
@@ -87,6 +103,8 @@ def call_script(model_idx, params):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--pool-size", type=int, default=2)
+parser.add_argument("changes", nargs="*", default="",
+        help="Changes to state")
 parser.add_argument("--proto", default="get_params_cs_en_LV",
         help="Parameter list for bleu script")
 args = parser.parse_args()
@@ -95,14 +113,19 @@ args = parser.parse_args()
 if __name__ == "__main__":
 
     params = eval(args.proto)()
+    if args.changes:
+        params.update(eval('{%s}' % args.changes[0]))
 
     for key, value in params.iteritems():
         logger.info('{:15} :{}'.format(key, value))
 
     pool = ThreadPool(args.pool_size)
 
+    if not isinstance(params['modelIdx'], list):
+        params['modelIdx'] = [params['modelIdx']]
+
     for i, d in enumerate(params['modelIdx']):
-        pool.add_task(call_script, d, params)
+        pool.add_task(call_script, i, d, params)
 
     logger.info('waiting for threads to join()...')
     pool.wait_completion()
