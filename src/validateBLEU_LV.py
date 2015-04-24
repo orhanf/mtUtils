@@ -27,6 +27,20 @@ def get_params_cs_en_LV():
     params['beam_size'] = 12
     return params
 
+def get_params_cs_en_reshuf_LV():
+    '''
+    parameters to change, filenames etc
+    '''
+    params = {}
+    params['script'] = '/data/lisatmp3/firatorh/nmt/wmt15/trainedModels/LV/cs-en2/evaluate_model.sh'
+    params['modelIdx'] = range(10, 20)
+    params['root_dir'] = '/data/lisatmp3/firatorh/nmt/wmt15/trainedModels/LV/cs-en2'
+    params['src_file'] = '/data/lisatmp3/jeasebas/nmt/data/wmt15/full/dev/tok/newstest2013.tok.cs'
+    params['ref_file'] = '/data/lisatmp3/jeasebas/nmt/data/wmt15/full/dev/tok/newstest2013.tok.en'
+    params['device'] = 'cpu'
+    params['prefix'] = 'search_lv_cs_en_reshuf'
+    params['beam_size'] = 12
+    return params
 
 def get_params_en_cs_LV():
     '''
@@ -40,6 +54,22 @@ def get_params_en_cs_LV():
     params['ref_file'] = '/data/lisatmp3/jeasebas/nmt/data/wmt15/full/dev/tok/newstest2013.tok.cs'
     params['device'] = 'cpu'
     params['prefix'] = 'search_lv_cs_fi'
+    params['beam_size'] = 12
+    return params
+
+
+def get_params_de_en_LV():
+    '''
+    parameters to change, filenames etc
+    '''
+    params = {}
+    params['script'] = '/data/lisatmp3/firatorh/nmt/wmt15/trainedModels/LV/de-en/evaluate_model.sh'
+    params['modelIdx'] = range(10, 20)
+    params['root_dir'] = '/data/lisatmp3/firatorh/nmt/wmt15/trainedModels/LV/de-en'
+    params['src_file'] = '/data/lisatmp3/jeasebas/nmt/data/wmt15/full/dev/tok/newstest2013.tok.de'
+    params['ref_file'] = '/data/lisatmp3/jeasebas/nmt/data/wmt15/full/dev/tok/newstest2013.tok.en'
+    params['device'] = 'gpu2'
+    params['prefix'] = 'search_lv_de_en'
     params['beam_size'] = 12
     return params
 
