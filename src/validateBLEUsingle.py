@@ -62,6 +62,23 @@ def get_params_tr_en():
                         params['prefix'] + '_model.npz'
     return params
 
+def get_params_fi_en():
+    '''
+    parameters to change, filenames etc
+    '''
+    params = {}
+    params['script'] = '/data/lisatmp3/firatorh/nmt/wmt15/trainedModels/withoutLM/translate_and_calculate_bleu_TM_only.sh'
+    params['prefix'] = 'refGHOG_adadelta_40k_reshuf'
+    params['base']   = '/data/lisatmp3/firatorh/nmt/tr-en_lm'
+    params['outfile']='/data/lisatmp3/firatorh/nmt/tr-en_lm/searchWithLM0_OUT'
+    params['tstSrc'] = 'IWSLT14.TED.tst2010.tr-en.tr.tok.seg'
+    params['tstGld'] = 'IWSLT14.TED.tst2010.tr-en.en.tok'
+    params['devSrc'] = 'IWSLT14.TED.dev2010.tr-en.tr.tok.seg'
+    params['devGld'] = 'IWSLT14.TED.dev2010.tr-en.en.tok'
+    params['model']  = params['base'] +'/trainedModels/'+\
+                        params['prefix'] + '_model.npz'
+    return params
+
 def get_params_tr_en_shallowLM():
     '''
     parameters to change, filenames etc
