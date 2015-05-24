@@ -74,6 +74,38 @@ def get_params_de_en_LV():
     return params
 
 
+def get_params_cs_en_LV_LM():
+    '''
+    parameters to change, filenames etc
+    '''
+    params = {}
+    params['script'] = '/data/lisatmp3/firatorh/nmt/wmt15/trainedModels/LV_LM/cs2en/evaluate_cs2en.sh'
+    params['modelIdx'] = range(10, 20)
+    params['root_dir'] = '/data/lisatmp3/firatorh/nmt/wmt15/trainedModels/LV_LM/cs2en'
+    params['src_file'] = '/data/lisatmp3/jeasebas/nmt/data/wmt15/full/dev/tok/newstest2013.tok.cs'
+    params['ref_file'] = '/data/lisatmp3/jeasebas/nmt/data/wmt15/full/dev/tok/newstest2013.tok.en'
+    params['device'] = 'cpu'
+    params['prefix'] = 'cs2en_search_200k_15k_7'
+    params['beam_size'] = 12
+    return params
+
+
+def get_params_de_en_LV_LM():
+    '''
+    parameters to change, filenames etc
+    '''
+    params = {}
+    params['script'] = '/data/lisatmp3/firatorh/nmt/wmt15/trainedModels/LV_LM/de2en/evaluate_de2en.sh'
+    params['modelIdx'] = range(10, 20)
+    params['root_dir'] = '/data/lisatmp3/firatorh/nmt/wmt15/trainedModels/LV_LM/de2en'
+    params['src_file'] = '/data/lisatmp3/jeasebas/nmt/data/wmt15/full/dev/tok/newstest2013.tok.de'
+    params['ref_file'] = '/data/lisatmp3/jeasebas/nmt/data/wmt15/full/dev/tok/newstest2013.tok.en'
+    params['device'] = 'gpu2'
+    params['prefix'] = 'de2en_search_200k_50k_2'
+    params['beam_size'] = 12
+    return params
+
+
 class Worker(Thread):
     """Thread executing tasks from a given tasks queue"""
     def __init__(self, tasks):
@@ -135,7 +167,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--pool-size", type=int, default=2)
 parser.add_argument("changes", nargs="*", default="",
         help="Changes to state")
-parser.add_argument("--proto", default="get_params_cs_en_LV",
+parser.add_argument("--proto", default="get_params_de_en_LV_LM",
         help="Parameter list for bleu script")
 args = parser.parse_args()
 
